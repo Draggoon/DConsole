@@ -3,15 +3,57 @@
 #include <Windows.h>
 
 #include <iostream>
-#include <fstream>
 #include <chrono>
 #include <thread>
 #include <condition_variable>
-
-#include "Vectors.h"
-#include "Color.h"
+#include <tuple>
 
 namespace Draggoon {
+
+	/// <summary>Holds coordinates about a 2D position.</summary>
+	template<class T=int>
+	class Vector2D {
+	public:
+		Vector2D(const T& t_x = 0, const T& t_y = 0);
+		//Vector2D(const std::tuple<T, T>& t_vec);
+		T getX() const;
+		T getY() const;
+		void setX(const T& t_x);
+		void setY(const T& t_y);
+		T getArea() const;
+		bool contains(const Draggoon::Vector2D<T> t_v) const;
+		bool isContainedIn(const Draggoon::Vector2D<T> t_v) const;
+		bool operator==(const Vector2D<T>& t_v) const;
+		bool operator!=(const Vector2D<T>& t_v) const;
+	protected:
+		T m_x;	/// <summary>Horizontal coordinate (left to right).</summary>
+		T m_y;	/// <summary>Vertical coordinate (top to bottom).</summary>
+	};
+
+	/// <summary>Holds color information.</summary>
+	template<class T=float>
+	class Color {
+	public:
+		Color(T t_r=0, T t_g=0, T t_b=0);
+		T getR() const;
+		T getG() const;
+		T getB() const;
+		std::tuple<T, T, T> getRGB() const;
+	protected:
+		T m_r;	/// <summary>Red component of the RGB color.</summary>
+		T m_g;	/// <summary>Green component of the RGB color.</summary>
+		T m_b;	/// <summary>Blue component of the RGB color.</summary>
+	};
+
+	extern Draggoon::Color<float> F_WHITE;
+	extern Draggoon::Color<float> F_RED;
+	extern Draggoon::Color<float> F_GREEN;
+	extern Draggoon::Color<float> F_BLUE;
+	extern Draggoon::Color<float> F_GRAY;
+	extern Draggoon::Color<float> F_DARK_RED;
+	extern Draggoon::Color<float> F_DARK_GREEN;
+	extern Draggoon::Color<float> F_DARK_BLUE;
+	extern Draggoon::Color<float> F_BLACK;
 
 	extern short C_FULL_BLOCK;		// █
 	extern short C_DARK_SHADE;		// ▓
@@ -65,7 +107,7 @@ namespace Draggoon {
 
 		/// Can be implemented by the user
 		/// <summary>Called periodically (depending on the framerate) to process input.</summary>
-		virtual bool onInputUpdate(const Key* keys, const size_t& keyCount, const Key* mouseBtn, const size_t& mouseBtnCount) {
+		virtual bool onInputUpdate(const Draggoon::Key* keys, const size_t& keyCount, const Draggoon::Key* mouseBtn, const size_t& mouseBtnCount) {
 			// This is a default method that can be overloaded by the user
 			if (keys[VK_ESCAPE].isPressed()) {
 				return false;	// Stop the thread loop
@@ -82,7 +124,7 @@ namespace Draggoon {
 		/// Can be implemented by the user
 		/// <summary>Called when the console size changes.</summary>
 		/// <param name="newSize">Vector2D containing the new size of the screen.</param>
-		virtual void onResize(const Draggoon::Vector2D<int>& newSize) {
+		virtual void onResize(const Vector2D<int>& newSize) {
 			// This is a default method that can be overloaded by the user
 		};
 
@@ -109,32 +151,25 @@ namespace Draggoon {
 
 		void clearScreen();
 
-		void setPixel(Vector2D<int> t_pix, Color<float> t_color);
-
 		/// <summary>Changes a character on the console.</summary>
 		/// <param name="t_pix">The char position on the console screen (top: y=0, left: x=0).</param>
 		/// <param name="t_char">The character to display. defaults to a "full block" unicode character.</param>
 		/// <param name="t_charColor">The color of the character.</param>
 		/// <param name="t_backColor">The color of the cell behind the character.</param>
-		void setChar(Draggoon::Vector2D<int> t_pix, short t_char=C_FULL_BLOCK, Color<float> t_charColor=COLOR_F_WHITE, Color<float> t_backColor=COLOR_F_BLACK);
+		void setPixel(Vector2D<int> t_pix, short t_char=Draggoon::C_FULL_BLOCK, Color<float> t_charColor=Draggoon::F_WHITE, Color<float> t_backColor=Draggoon::F_BLACK);
 		
-		void setCharAlpha(Draggoon::Vector2D<int> t_pix, short t_char, Color<float> t_charColor=COLOR_F_WHITE);
+		void setCharAlpha(Vector2D<int> t_pix, short t_char, Draggoon::Color<float> t_charColor=Draggoon::F_WHITE);
 		
 		/// <summary>Displays a string of characters on the console.</summary>
 		/// <param name="t_pix">The first char position on the console screen (top: y=0, left: x=0).</param>
 		/// <param name="t_char">The characters to display.</param>
 		/// <param name="t_charColor">The color of the characters.</param>
 		/// <param name="t_backColor">The color of the cell behind the characters.</param>
-		void drawString(Draggoon::Vector2D<int> t_pix, const wchar_t* t_str, Color<float> t_charColor=COLOR_F_WHITE, Color<float> t_backColor=COLOR_F_BLACK);
+		void drawString(Vector2D<int> t_pix, const wchar_t* t_str, Color<float> t_charColor=Draggoon::F_WHITE, Color<float> t_backColor=Draggoon::F_BLACK);
 
-		void drawStringAlpha(Draggoon::Vector2D<int> t_pix, const wchar_t* t_str, Color<float> t_charColor=COLOR_F_WHITE);
+		void drawStringAlpha(Vector2D<int> t_pix, const wchar_t* t_str, Color<float> t_charColor=Draggoon::F_WHITE);
 
-		void drawLineChar(Draggoon::Vector2D<int> t_pix1, Draggoon::Vector2D<int> t_pix2, short t_str=C_FULL_BLOCK, Color<float> t_charColor=COLOR_F_WHITE, Color<float> t_backColor=COLOR_F_TRANSPARENT);
-		
-		void drawLine(Draggoon::Vector2D<int> t_pix1, Draggoon::Vector2D<int> t_pix2, Color<float> t_color=COLOR_F_WHITE);
-
-		void drawRect(Vector2D<int> t_pix1, Vector2D<int> t_pix2, Color<float> t_color=COLOR_F_WHITE);
-		void fillRect(Vector2D<int> t_pix1, Vector2D<int> t_pix2, Color<float> t_color=COLOR_F_WHITE);
+		void drawLine(Vector2D<int> t_pix1, Vector2D<int> t_pix2, short t_str=C_FULL_BLOCK, Color<float> t_charColor=F_WHITE, Color<float> t_backColor=F_BLACK);
 
 
 	protected:
@@ -142,9 +177,6 @@ namespace Draggoon {
 		int m_framerate;
 		bool m_clearScreenBeforeUpdate;
 		bool m_stretchOnResize;
-
-		bool m_enableStats;
-		wchar_t m_lastFrameStats[256];
 
 	private:
 		Draggoon::Vector2D<int> m_desiredSize;
@@ -164,17 +196,16 @@ namespace Draggoon {
 		Draggoon::Vector2D<int> m_actualSize;
 
 		static const int KEY_COUNT = 256;
-		Key m_key[KEY_COUNT];
+		Draggoon::Key m_key[KEY_COUNT];
 		static const int MOUSE_BTN_COUNT = 5;
-		Key m_mouseBtn[MOUSE_BTN_COUNT];
+		Draggoon::Key m_mouseBtn[MOUSE_BTN_COUNT];
 		Draggoon::Vector2D<int> m_mousePosition;
 
 		static std::condition_variable m_stopCV;
 		static std::mutex m_stopMutex;
 		static BOOL consoleEventHandler(DWORD event);
 
-		std::ofstream m_cerrFile;
-		std::streambuf* m_origCerr;
-
 	};
 }
+
+
