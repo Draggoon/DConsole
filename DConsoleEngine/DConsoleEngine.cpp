@@ -1,151 +1,6 @@
 ﻿#include "DConsoleEngine.h"
 
 
-// #,     ,# #########  ######,  #########  ,#####,  #######,
-// "#     #" ##""""""  ##"""""## """###""" ,#"""""#, ##"""""#,
-//  ##   ##  ##        ##           ###    ##     ## ##,,,,,#"
-//   #, ,#   ########  ##           ###    ##     ## #######"
-//   "#,#"   ##"""""   ##           ###    ##     ## ##"""##,
-//    "#"    ##,,,,,,  ##,,,,,##    ###    "#,,,,,#" ##   "##,
-//     #     #########  ######"     ###     "#####"  ##    "##
-
-template <class T>
-Draggoon::Vector2D<T>::Vector2D(const T& t_x, const T& t_y) : m_x(t_x), m_y(t_y) {
-
-}
-/*
-template<class T>
-Draggoon::Vector2D<T>::Vector2D(const std::tuple<T, T>& t_vec) {
-	std::tie(m_x, m_y) = t_vec;
-}
-*/
-
-template<class T>
-T Draggoon::Vector2D<T>::getX() const {
-	return m_x;
-}
-
-template<class T>
-T Draggoon::Vector2D<T>::getY() const {
-	return m_y;
-}
-
-template<class T>
-void Draggoon::Vector2D<T>::setX(const T& t_x) {
-	m_x = t_x;
-}
-
-template<class T>
-void Draggoon::Vector2D<T>::setY(const T& t_y) {
-	m_y = t_y;
-}
-
-template<class T>
-T Draggoon::Vector2D<T>::getArea() const {
-	return m_x * m_y;
-}
-
-template<class T>
-bool Draggoon::Vector2D<T>::contains(const Draggoon::Vector2D<T> t_v) const {
-	bool x(false),y(false);
-	if (m_x >= 0 && t_v.m_x >= 0) {
-		if (t_v.m_x <= m_x)
-			x = true;
-	}
-	else if (m_x <= 0 && t_v.m_x <= 0) {
-		if (t_v.m_x >= m_x)
-			x = true;
-	}
-	if (m_y >= 0 && t_v.m_y >= 0) {
-		if (t_v.m_y <= m_y)
-			y = true;
-	}
-	else if (m_y <= 0 && t_v.m_y <= 0) {
-		if (t_v.m_y >= m_y)
-			y = true;
-	}
-	return x && y;
-}
-
-template<class T>
-bool Draggoon::Vector2D<T>::isContainedIn(const Draggoon::Vector2D<T> t_v) const {
-	bool x(false), y(false);
-	if (m_x >= 0 && t_v.m_x >= 0) {
-		if (t_v.m_x >= m_x)
-			x = true;
-	}
-	else if (m_x <= 0 && t_v.m_x <= 0) {
-		if (t_v.m_x <= m_x)
-			x = true;
-	}
-	if (m_y >= 0 && t_v.m_y >= 0) {
-		if (t_v.m_y >= m_y)
-			y = true;
-	}
-	else if (m_y <= 0 && t_v.m_y <= 0) {
-		if (t_v.m_y <= m_y)
-			y = true;
-	}
-	return x && y;
-}
-
-template<class T>
-bool Draggoon::Vector2D<T>::operator==(const Vector2D<T>& t_v) const {
-	return t_v.m_x == m_x && t_v.m_y == m_y;
-}
-
-template<class T>
-bool Draggoon::Vector2D<T>::operator!=(const Vector2D<T>& t_v) const {
-	return t_v.m_x != m_x || t_v.m_y != m_y;
-}
-
-
-//  ######,   ,#####,  ##         ,#####,  #######,
-// ##"""""## ,#"""""#, ##        ,#"""""#, ##"""""#,
-// ##        ##     ## ##        ##     ## ##,,,,,#"
-// ##        ##     ## ##        ##     ## #######"
-// ##        ##     ## ##        ##     ## ##"""##,
-// ##,,,,,## "#,,,,,#" ##,,,,,,, "#,,,,,#" ##   "##,
-//  ######"   "#####"  #########  "#####"  ##    "##
-
-template<class T>
-Draggoon::Color<T>::Color(T _r, T _g, T _b) : m_r(_r), m_g(_g), m_b(_b) {
-
-}
-
-template<class T>
-T Draggoon::Color<T>::getR() const {
-	return m_r;
-}
-
-template<class T>
-T Draggoon::Color<T>::getG() const {
-	return m_g;
-}
-
-template<class T>
-T Draggoon::Color<T>::getB() const {
-	return m_b;
-}
-
-template<class T>
-std::tuple<T, T, T> Draggoon::Color<T>::getRGB() const {
-	return {m_r, m_g, m_b};
-}
-
-
-Draggoon::Color<float> Draggoon::F_WHITE(1.0f, 1.0f, 1.0f);
-Draggoon::Color<float> Draggoon::F_RED(1.0f, 0.0f, 0.0f);
-Draggoon::Color<float> Draggoon::F_GREEN(0.0f, 1.0f, 0.0f);
-Draggoon::Color<float> Draggoon::F_BLUE(0.0f, 0.0f, 1.0f);
-Draggoon::Color<float> Draggoon::F_GRAY(0.5f, 0.5f, 0.5f);
-Draggoon::Color<float> Draggoon::F_DARK_RED(0.5f, 0.0f, 0.0f);
-Draggoon::Color<float> Draggoon::F_DARK_GREEN(0.0f, 0.5f, 0.0f);
-Draggoon::Color<float> Draggoon::F_DARK_BLUE(0.0f, 0.0f, 0.5f);
-Draggoon::Color<float> Draggoon::F_BLACK(0.0f, 0.0f, 0.0f);
-
-
-
 short Draggoon::C_FULL_BLOCK = L'\u2588';	// █
 short Draggoon::C_DARK_SHADE = L'\u2593';	// ▓
 short Draggoon::C_MEDIUM_SHADE = L'\u2592';	// ▒
@@ -206,23 +61,26 @@ volatile bool Draggoon::DConsoleEngine::m_runEngine(false);
 std::thread* Draggoon::DConsoleEngine::m_engineThread(nullptr);
 
 Draggoon::DConsoleEngine::DConsoleEngine() :
-m_appName(L"DConsoleEnging Default name"),
-m_framerate(60),
-m_clearScreenBeforeUpdate(true),
-m_stretchOnResize(false),
-m_desiredSize(40, 30),
-m_desiredPixelSize(8, 8),
-m_desiredWindowSize(m_desiredSize.getX()*m_desiredPixelSize.getX(), m_desiredSize.getY()*m_desiredPixelSize.getY()),
-m_actualWindowSize(m_desiredWindowSize),
-m_asyncRunning(false),
-m_windowCreated(false),
-m_originalScreenBuffer(nullptr),
-m_screenBuffer(nullptr),
-m_inputHandle(nullptr),
-m_pixelsBuffer(nullptr),
-m_bufferSize(0,0),
-m_actualSize(0,0),
-m_mousePosition(0,0)
+	m_appName(L"DConsoleEnging Default name"),
+	m_framerate(60),
+	m_clearScreenBeforeUpdate(true),
+	m_stretchOnResize(false),
+	m_enableStats(false),
+	m_desiredSize(40, 30),
+	m_desiredPixelSize(8, 8),
+	m_desiredWindowSize(m_desiredSize.getX()*m_desiredPixelSize.getX(), m_desiredSize.getY()*m_desiredPixelSize.getY()),
+	m_actualWindowSize(m_desiredWindowSize),
+	m_asyncRunning(false),
+	m_windowCreated(false),
+	m_originalScreenBuffer(nullptr),
+	m_screenBuffer(nullptr),
+	m_inputHandle(nullptr),
+	m_pixelsBuffer(nullptr),
+	m_bufferSize(0, 0),
+	m_actualSize(0, 0),
+	m_mousePosition(0, 0),
+	m_cerrFile("errorLog.txt", std::ios_base::out | std::ios_base::trunc),
+	m_origCerr(nullptr)
 {
 
 }
@@ -242,6 +100,9 @@ void Draggoon::DConsoleEngine::initConsole() {
 	m_inputHandle = GetStdHandle(STD_INPUT_HANDLE);
 
 	SetConsoleMode(m_inputHandle, ENABLE_EXTENDED_FLAGS | ENABLE_WINDOW_INPUT | ENABLE_MOUSE_INPUT);
+
+	if (m_cerrFile.is_open())
+		m_origCerr = std::cerr.rdbuf(m_cerrFile.rdbuf());
 
 	m_screenBuffer = CreateConsoleScreenBuffer(GENERIC_WRITE | GENERIC_READ, 0, NULL, 0, NULL);
 
@@ -446,26 +307,32 @@ int Draggoon::DConsoleEngine::engineFunction() {
 	}
 
 
-	std::chrono::time_point<std::chrono::high_resolution_clock> t1(std::chrono::high_resolution_clock::now());
-	std::chrono::time_point<std::chrono::high_resolution_clock> t2(std::chrono::high_resolution_clock::now());
-	std::chrono::time_point<std::chrono::high_resolution_clock> framerateT1(std::chrono::high_resolution_clock::now());
-	std::chrono::time_point<std::chrono::high_resolution_clock> framerateT2(std::chrono::high_resolution_clock::now());
+	std::chrono::time_point<std::chrono::high_resolution_clock> tStartLoop(std::chrono::high_resolution_clock::now()),
+																tInputProcessed(std::chrono::high_resolution_clock::now()),
+																tResized(std::chrono::high_resolution_clock::now()),
+																tScreenCleaned(std::chrono::high_resolution_clock::now()),
+																tUserDelta(std::chrono::high_resolution_clock::now()),
+																tBufferUpdated(std::chrono::high_resolution_clock::now()),
+																tScreenRefreshed(std::chrono::high_resolution_clock::now()),
+																tFramerateAdapted(std::chrono::high_resolution_clock::now());
 
 	wchar_t title[256];
 
 	// Main loop (Input processing, drawing, framerate limiting)
 	while (m_runEngine) {
+		tStartLoop = std::chrono::high_resolution_clock::now();
 
+		// Process inputs
 		for (int i(0); i<KEY_COUNT; ++i) {
 			m_key[i].setState((GetAsyncKeyState(i) & 0x8000) != 0);	// GetAsyncKeyState returns a short, MSB set = key is down. 
-																	// (LSB set = key pressed since last call, not reliable)
+																	// (LSB set = key pressed since last call, but not reliable)
 		}
-
-		// Clear "changed" flag
-		for (int i(0); i<MOUSE_BTN_COUNT; ++i)
-			m_mouseBtn[i].setState(m_mouseBtn[i].isDown());
 		INPUT_RECORD record;
 		DWORD nbToRead, nbRead;
+		bool mouseBtnDownTemp[MOUSE_BTN_COUNT];
+		for (int i(0); i<MOUSE_BTN_COUNT; ++i) {
+			mouseBtnDownTemp[i] = m_mouseBtn[i].isDown();
+		}
 		// Must check if events are available, otherwise ReadConsoleInput hangs until an event arrives.
 		GetNumberOfConsoleInputEvents(m_inputHandle, &nbToRead);
 		while (nbToRead>0) {
@@ -474,7 +341,7 @@ int Draggoon::DConsoleEngine::engineFunction() {
 			case MOUSE_EVENT: {
 				m_mousePosition = {record.Event.MouseEvent.dwMousePosition.X, record.Event.MouseEvent.dwMousePosition.Y};
 				for(int i(0); i<MOUSE_BTN_COUNT; ++i)
-					m_mouseBtn[i].setState((record.Event.MouseEvent.dwButtonState & (1<<i)) != 0);
+					mouseBtnDownTemp[i] = (record.Event.MouseEvent.dwButtonState & (1<<i)) != 0;
 				break;
 			}
 			case KEY_EVENT:
@@ -489,12 +356,15 @@ int Draggoon::DConsoleEngine::engineFunction() {
 			}
 			nbToRead -= nbRead;
 		}
+		for (int i(0); i<MOUSE_BTN_COUNT; ++i)
+			m_mouseBtn[i].setState(mouseBtnDownTemp[i]);
 
 		if (!onInputUpdate(m_key, KEY_COUNT, m_mouseBtn, MOUSE_BTN_COUNT)) {
 			m_runEngine = false;
 		}
+		tInputProcessed = std::chrono::high_resolution_clock::now();
 
-
+		// Check Window size
 		RECT winRect;
 		GetClientRect(GetConsoleWindow(), &winRect);
 		int width(winRect.right-winRect.left), height(winRect.bottom-winRect.top);
@@ -508,19 +378,20 @@ int Draggoon::DConsoleEngine::engineFunction() {
 #endif
 			}
 		}
+		tResized = std::chrono::high_resolution_clock::now();
 
 		if (m_clearScreenBeforeUpdate)
 			clearScreen();
+		tScreenCleaned = std::chrono::high_resolution_clock::now();
 
 		// Let the user update the screen
-		t2 = std::chrono::high_resolution_clock::now();
-		std::chrono::duration<float> userDelta = t2-t1;
-		t1 = t2;
+		std::chrono::duration<float> userDelta = tScreenCleaned-tUserDelta;
+		tUserDelta = tScreenCleaned;
 		if (!onScreenUpdate(userDelta)) {
 			m_runEngine = false;
 			break;
 		}
-
+		tBufferUpdated = std::chrono::high_resolution_clock::now();
 
 		// Refresh the screen
 		COORD bufferSize;
@@ -533,23 +404,52 @@ int Draggoon::DConsoleEngine::engineFunction() {
 		rect.Right = m_actualSize.getX();
 		WriteConsoleOutput(m_screenBuffer, m_pixelsBuffer, bufferSize, {0,0}, &rect);
 
-		// Calculate and display framerate, and wait if fps limit is on
-		framerateT2 = std::chrono::high_resolution_clock::now();
-		std::chrono::duration<float> framerateDelta = framerateT2 - framerateT1;
+		tScreenRefreshed = std::chrono::high_resolution_clock::now();
+
+		// Calculate and display framerate, and wait (if fps limit is on)
+		std::chrono::duration<float> framerateDelta = tScreenRefreshed - tFramerateAdapted;
 		if (m_framerate > 0) {
 			if (framerateDelta.count() < 1.0/m_framerate) {
 				std::this_thread::sleep_for(std::chrono::microseconds( (long)( (1.0/m_framerate - framerateDelta.count())*1000000 )) );
 			}
-			swprintf_s(title, 256, L"%s - %dx%d - %3.2f fps / %d", m_appName.c_str(), m_actualSize.getX(), m_actualSize.getY(), 1.0/userDelta.count(), m_framerate);
+			swprintf_s(title, 256, L"%s - %dx%d - %3.2f/%d fps", m_appName.c_str(), m_actualSize.getX(), m_actualSize.getY(), 1.0/userDelta.count(), m_framerate);
 		}
 		else
 			swprintf_s(title, 256, L"%s - %dx%d - %3.2f fps", m_appName.c_str(), m_actualSize.getX(), m_actualSize.getY(), 1.0/userDelta.count());
 
 		SetConsoleTitle(title);
-		framerateT1 = std::chrono::high_resolution_clock::now();
+		tFramerateAdapted = std::chrono::high_resolution_clock::now();
+		if (m_enableStats) {
+			float dInput(std::chrono::duration_cast<std::chrono::duration<float, std::milli>>(tInputProcessed-tStartLoop).count());
+			float dResize(std::chrono::duration_cast<std::chrono::duration<float, std::milli>>(tResized-tInputProcessed).count());
+			float dClean(std::chrono::duration_cast<std::chrono::duration<float, std::milli>>(tScreenCleaned-tResized).count());
+			float dUpdate(std::chrono::duration_cast<std::chrono::duration<float, std::milli>>(tBufferUpdated-tScreenCleaned).count());
+			float dRefresh(std::chrono::duration_cast<std::chrono::duration<float, std::milli>>(tScreenRefreshed-tBufferUpdated).count());
+			float dFramerate(std::chrono::duration_cast<std::chrono::duration<float, std::milli>>(tFramerateAdapted-tScreenRefreshed).count());
+			float dTotal(dInput+dResize+dRefresh+dClean+dUpdate+dRefresh+dFramerate);
+
+			swprintf_s(m_lastFrameStats, 256,
+				L"Input Processing: %5.3f, (%3.f%%)\n"
+				"Resizing: %13.3f, (%3.f%%)\n"
+				"Screen cleaning: %6.3f, (%3.f%%)\n"
+				"User update: %10.3f, (%3.f%%)\n"
+				"Screen refresh: %7.3f, (%3.f%%)\n"
+				"Framerate cap: %8.3f, (%3.f%%)\n",
+				dInput, dInput/dTotal*100.0f,
+				dResize, dResize/dTotal*100.0f,
+				dClean, dClean/dTotal*100.0f,
+				dUpdate, dUpdate/dTotal*100.0f,
+				dRefresh, dRefresh/dTotal*100.0f,
+				dFramerate, dFramerate/dTotal*100.0f);
+		}
 	}
 
 	onDestroy();
+
+	if (m_origCerr != nullptr) {
+		std::cerr.rdbuf(m_origCerr);
+		m_cerrFile.close();
+	}
 
 	if (m_pixelsBuffer != nullptr)
 		delete[] m_pixelsBuffer;
@@ -588,168 +488,220 @@ void Draggoon::DConsoleEngine::clearScreen() {
 	memset(m_pixelsBuffer, 0, (unsigned long long)m_bufferSize.getArea()*sizeof(CHAR_INFO));
 }
 
-void Draggoon::DConsoleEngine::setPixel(Draggoon::Vector2D<int> t_pix, short t_char, Draggoon::Color<float> t_charColor, Draggoon::Color<float> t_backColor) {
+void Draggoon::DConsoleEngine::setPixel(Vector2D<int> t_pix, Color<float> t_color) {
+	setChar(t_pix, C_SPACE, COLOR_F_TRANSPARENT, t_color);
+}
+
+void Draggoon::DConsoleEngine::setChar(Draggoon::Vector2D<int> t_pix, short t_char, Draggoon::Color<float> t_charColor, Draggoon::Color<float> t_backColor) {
 	if (t_pix.isContainedIn(m_bufferSize)) {
 
 		int bufferPos(t_pix.getY() * m_bufferSize.getX() + t_pix.getX());
-		m_pixelsBuffer[bufferPos].Char.UnicodeChar = t_char;
+		if(!t_charColor.isTransparent())
+			m_pixelsBuffer[bufferPos].Char.UnicodeChar = t_char;
 
-		int brightChar(0), brightBack(0);
-		if (t_charColor.getR()>0.5f || t_charColor.getG()>0.5f || t_charColor.getB()>0.5f)
-			brightChar = 1;
-		if (t_backColor.getR()>0.5f || t_backColor.getG()>0.5f || t_backColor.getB()>0.5f)
-			brightBack = 1;
+		bool brightChar(false), brightBack(false);
+		brightChar = t_charColor.getR()>0.5f || t_charColor.getG()>0.5f || t_charColor.getB()>0.5f;
+		brightBack = t_backColor.getR()>0.5f || t_backColor.getG()>0.5f || t_backColor.getB()>0.5f;
 
-		m_pixelsBuffer[bufferPos].Attributes =
-			(t_charColor.getR()>0.0f?1:0) << 2 |
-			(t_charColor.getG()>0.0f?1:0) << 1 |
-			(t_charColor.getB()>0.0f?1:0) |
-			brightChar << 3 |
-			(t_backColor.getR()>0.0f?1:0) << 6 |
-			(t_backColor.getG()>0.0f?1:0) << 5 |
-			(t_backColor.getB()>0.0f?1:0) << 4 |
-			brightBack << 7;
+		if(!t_charColor.isTransparent()) {
+			m_pixelsBuffer[bufferPos].Attributes = (m_pixelsBuffer[bufferPos].Attributes & 0xFFF0) |
+				(t_charColor.getR()>0.0f?1:0) << 2 |
+				(t_charColor.getG()>0.0f?1:0) << 1 |
+				(t_charColor.getB()>0.0f?1:0) |
+				(brightChar?1:0) << 3;
+		}
+		if (!t_backColor.isTransparent()) {
+			m_pixelsBuffer[bufferPos].Attributes = (m_pixelsBuffer[bufferPos].Attributes & 0xFF0F) |
+				(t_backColor.getR()>0.0f?1:0) << 6 |
+				(t_backColor.getG()>0.0f?1:0) << 5 |
+				(t_backColor.getB()>0.0f?1:0) << 4 |
+				(brightBack?1:0) << 7;
+		}
 	}
-	else
-		throw "Tried to draw outside of screen.";
+	//else
+	//	throw "Tried to draw outside of screen.";
 }
 
 void Draggoon::DConsoleEngine::setCharAlpha(Draggoon::Vector2D<int> t_pix, short t_char, Draggoon::Color<float> t_charColor) {
+	setChar(t_pix, t_char, t_charColor, COLOR_F_TRANSPARENT);
+	return;
 	if (t_pix.isContainedIn(m_bufferSize)) {
 		int bufferPos(t_pix.getY() * m_bufferSize.getX() + t_pix.getX());
 		m_pixelsBuffer[bufferPos].Char.UnicodeChar = t_char;
 
-		int brightChar(0);
-		if (t_charColor.getR()>0.5f || t_charColor.getG()>0.5f || t_charColor.getB()>0.5f)
-			brightChar = 1;
+		bool brightChar(false);
+		brightChar = t_charColor.getR()>0.5f || t_charColor.getG()>0.5f || t_charColor.getB()>0.5f;
 
 		m_pixelsBuffer[bufferPos].Attributes = (m_pixelsBuffer[bufferPos].Attributes & 0xFFF0) |
 			(t_charColor.getR()>0.0f?1:0) << 2 |
 			(t_charColor.getG()>0.0f?1:0) << 1 |
 			(t_charColor.getB()>0.0f?1:0) |
-			brightChar << 3;
+			(brightChar?1:0) << 3;
 	}
-	else
-		throw "Tried to draw outside of screen.";
+	//else
+	//	throw "Tried to draw outside of screen.";
 }
 
 void Draggoon::DConsoleEngine::drawString(Draggoon::Vector2D<int> t_pix, const wchar_t * t_str, Draggoon::Color<float> t_charColor, Draggoon::Color<float> t_backColor) {
-	int i(0);
-	// TODO check if t_str goes outside or allow line break
+	int i(0), x(t_pix.getX()), y(t_pix.getY());
 	while (t_str[i]  != '\0') {
-		setPixel({t_pix.getX()+i, t_pix.getY()}, t_str[i], t_charColor, t_backColor);
+		if (t_str[i] == '\n' || x >= m_bufferSize.getX()) {
+			x = t_pix.getX();
+			y += 1;
+		}
+		if(t_str[i] != '\n') {
+			if (m_bufferSize.contains({x,y}))
+				setChar({x, y}, t_str[i], t_charColor, t_backColor);
+			//else
+			//	throw "Drawing string outside of screen.";
+			x+=1;
+		}
 		++i;
 	}
 }
 
 void Draggoon::DConsoleEngine::drawStringAlpha(Draggoon::Vector2D<int> t_pix, const wchar_t* t_str, Draggoon::Color<float> t_charColor) {
-	int i(0);
-	// TODO check if t_str goes outside or allow line break
+	int i(0), x(t_pix.getX()), y(t_pix.getY());
 	while (t_str[i]  != '\0') {
-		setCharAlpha({t_pix.getX()+i, t_pix.getY()}, t_str[i], t_charColor);
+		if (t_str[i] == '\n' || x >= m_bufferSize.getX()) {
+			x = t_pix.getX();
+			y += 1;
+		}
+		if (t_str[i] != '\n') {
+			if (m_bufferSize.contains({x,y}))
+				setCharAlpha({x, y}, t_str[i], t_charColor);
+			//else
+			//	throw "Drawing string outside of screen.";
+			x+=1;
+		}
 		++i;
 	}
 }
 
-void Draggoon::DConsoleEngine::drawLine(Draggoon::Vector2D<int> t_pix1, Draggoon::Vector2D<int> t_pix2, short t_char, Draggoon::Color<float> t_charColor, Draggoon::Color<float> t_backColor) {
-	//if (m_actualSize.contains(t_pix1) && m_actualSize.contains(t_pix2)) {
-		int x(t_pix1.getX());
-		int y(t_pix1.getY());
-		int dx = t_pix2.getX() - t_pix1.getX();
-		int dy = t_pix2.getY() - t_pix1.getY();
-		if (abs(dx)>=abs(dy)) {
-			float slope((float)dy/dx);
-			float err(0.0f);
-			if (dx>=0)
-				if (dy>=0)
-					while (x<=t_pix2.getX()) {
-						if (err>0.5f) {
-							++y;
-							err -= 1.0f;
-						}
-						setPixel({x,y}, t_char, t_charColor, t_backColor);
-						err+=slope;
-						++x;
-					}
-				else
-					while (x<=t_pix2.getX()) {
-						if (err>0.5f) {
-							--y;
-							err -= 1.0f;
-						}
-						setPixel({x,y}, t_char, t_charColor, t_backColor);
-						err-=slope;
-						++x;
-					}
-			else
-				if (dy>=0)
-					while (x>=t_pix2.getX()) {
-						if (err>0.5f) {
-							++y;
-							err -= 1.0f;
-						}
-						setPixel({x,y}, t_char, t_charColor, t_backColor);
-						err-=slope;
-						--x;
-					}
-				else
-					while (x>=t_pix2.getX()) {
-						if (err>0.5f) {
-							--y;
-							err -= 1.0f;
-						}
-						setPixel({x,y}, t_char, t_charColor, t_backColor);
-						err+=slope;
-						--x;
-					}
-		}
-		else {
-			float slope((float)dx/dy);
-			float err(0.0f);
-			if (dx>=0)
-				if (dy>=0)
-					while (y<=t_pix2.getY()) {
-						if (err>0.5f) {
-							++x;
-							err -= 1.0f;
-						}
-						setPixel({x,y}, t_char, t_charColor, t_backColor);
-						err+=slope;
+void Draggoon::DConsoleEngine::drawLineChar(Draggoon::Vector2D<int> t_pix1, Draggoon::Vector2D<int> t_pix2, short t_char, Draggoon::Color<float> t_charColor, Draggoon::Color<float> t_backColor) {
+	int x(t_pix1.getX());
+	int y(t_pix1.getY());
+	int dx = t_pix2.getX() - t_pix1.getX();
+	int dy = t_pix2.getY() - t_pix1.getY();
+	if (t_pix1 == t_pix2) {
+		setChar({x,y}, t_char, t_charColor, t_backColor);
+	}
+	else if (abs(dx)>=abs(dy)) {
+		float slope((float)dy/dx);
+		float err(0.0f);
+		if (dx>=0)
+			if (dy>=0)
+				while (x<=t_pix2.getX()) {
+					if (err>0.5f) {
 						++y;
+						err -= 1.0f;
 					}
-				else
-					while (y>=t_pix2.getY()) {
-						if (err>0.5f) {
-							++x;
-							err -= 1.0f;
-						}
-						setPixel({x,y}, t_char, t_charColor, t_backColor);
-						err-=slope;
-						--y;
-					}
+					setChar({x,y}, t_char, t_charColor, t_backColor);
+					err+=slope;
+					++x;
+				}
 			else
-				if (dy>=0)
-					while (y<=t_pix2.getY()) {
-						if (err>0.5f) {
-							--x;
-							err -= 1.0f;
-						}
-						setPixel({x,y}, t_char, t_charColor, t_backColor);
-						err-=slope;
-						++y;
-					}
-				else
-					while (y>=t_pix2.getY()) {
-						if (err>0.5f) {
-							--x;
-							err -= 1.0f;
-						}
-						setPixel({x,y}, t_char, t_charColor, t_backColor);
-						err+=slope;
+				while (x<=t_pix2.getX()) {
+					if (err>0.5f) {
 						--y;
+						err -= 1.0f;
 					}
+					setChar({x,y}, t_char, t_charColor, t_backColor);
+					err-=slope;
+					++x;
+				}
+		else
+			if (dy>=0)
+				while (x>=t_pix2.getX()) {
+					if (err>0.5f) {
+						++y;
+						err -= 1.0f;
+					}
+					setChar({x,y}, t_char, t_charColor, t_backColor);
+					err-=slope;
+					--x;
+				}
+			else
+				while (x>=t_pix2.getX()) {
+					if (err>0.5f) {
+						--y;
+						err -= 1.0f;
+					}
+					setChar({x,y}, t_char, t_charColor, t_backColor);
+					err+=slope;
+					--x;
+				}
+	}
+	else {
+		float slope((float)dx/dy);
+		float err(0.0f);
+		if (dx>=0)
+			if (dy>=0)
+				while (y<=t_pix2.getY()) {
+					if (err>0.5f) {
+						++x;
+						err -= 1.0f;
+					}
+					setChar({x,y}, t_char, t_charColor, t_backColor);
+					err+=slope;
+					++y;
+				}
+			else
+				while (y>=t_pix2.getY()) {
+					if (err>0.5f) {
+						++x;
+						err -= 1.0f;
+					}
+					setChar({x,y}, t_char, t_charColor, t_backColor);
+					err-=slope;
+					--y;
+				}
+		else
+			if (dy>=0)
+				while (y<=t_pix2.getY()) {
+					if (err>0.5f) {
+						--x;
+						err -= 1.0f;
+					}
+					setChar({x,y}, t_char, t_charColor, t_backColor);
+					err-=slope;
+					++y;
+				}
+			else
+				while (y>=t_pix2.getY()) {
+					if (err>0.5f) {
+						--x;
+						err -= 1.0f;
+					}
+					setChar({x,y}, t_char, t_charColor, t_backColor);
+					err+=slope;
+					--y;
+				}
+	}
+}
+
+void Draggoon::DConsoleEngine::drawLine(Draggoon::Vector2D<int> t_pix1, Draggoon::Vector2D<int> t_pix2, Color<float> t_color) {
+	drawLineChar(t_pix1, t_pix2, C_SPACE, COLOR_F_TRANSPARENT, t_color);
+}
+
+void Draggoon::DConsoleEngine::drawRect(Vector2D<int> t_pix1, Vector2D<int> t_pix2, Color<float> t_color) {
+	drawLine(t_pix1, {t_pix1.getX(), t_pix2.getY()}, t_color);
+	drawLine({t_pix1.getX(), t_pix2.getY()}, t_pix2, t_color);
+	drawLine(t_pix2, {t_pix2.getX(), t_pix1.getY()}, t_color);
+	drawLine({t_pix2.getX(), t_pix1.getY()}, t_pix1, t_color);
+}
+
+void Draggoon::DConsoleEngine::fillRect(Vector2D<int> t_pix1, Vector2D<int> t_pix2, Color<float> t_color) {
+	if (t_pix1.getY() > t_pix2.getY()) {
+		for (int i(0); i<t_pix1.getY()-t_pix2.getY()+1; ++i) {
+			drawLine({t_pix2.getX(), t_pix2.getY()+i}, {t_pix1.getX(), t_pix2.getY()+i}, t_color);
 		}
-	//}
-	//else
-	//	throw "Drawing line outside of screen.";
+	}
+	else if (t_pix2.getY() > t_pix1.getY()) {
+		for (int i(0); i<t_pix2.getY()-t_pix1.getY()+1; ++i) {
+			drawLine({t_pix1.getX(), t_pix1.getY()+i}, {t_pix2.getX(), t_pix1.getY()+i}, t_color);
+		}
+	}
+	else
+		drawLine(t_pix1, t_pix2, t_color);
 }
