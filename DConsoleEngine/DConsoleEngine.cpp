@@ -54,7 +54,6 @@ void Draggoon::Key::setState(const bool& t_down) {
 // ##,,,,,,  ##   "### ##     ##   ,###,   ##   "### ##,,,,,,
 // ######### ##    "##  #######   #######  ##    "## #########
 
-
 std::mutex Draggoon::DConsoleEngine::m_stopMutex;
 std::condition_variable Draggoon::DConsoleEngine::m_stopCV;
 volatile bool Draggoon::DConsoleEngine::m_runEngine(false);
@@ -256,36 +255,18 @@ Draggoon::Vector2D<int> Draggoon::DConsoleEngine::getMousePosition() const {
 	return m_mousePosition;
 }
 
-void Draggoon::DConsoleEngine::externalStart(const bool & t_nonBlocking) {
-	m_asyncRunning = t_nonBlocking;
-
-
-	m_runEngine = true;
-
-	m_engineThread = new std::thread(&Draggoon::DConsoleEngine::engineFunction, this);
-
-	if (m_asyncRunning)
-		return;
-
-	m_engineThread->join();
-	delete m_engineThread;
+Draggoon::Vector2D<int> Draggoon::DConsoleEngine::getSize() const {
+	return m_actualSize;
 }
 
-void Draggoon::DConsoleEngine::externalStop() {
-	m_runEngine = false;
 
-	if (m_engineThread == nullptr)
-		throw "DConsoleEngine::externalStop: Engine not running";
-
-	m_engineThread->join();
-	delete m_engineThread;
-
-	SetConsoleActiveScreenBuffer(m_originalScreenBuffer);
-}
-
-void Draggoon::DConsoleEngine::internalStop() {
-	m_runEngine = false;
-}
+// ######### ##     ## #######,  #########    ###    #######,
+// """###""" ##     ## ##"""""#, ##""""""    ##"##   ##"""""#,
+//    ###    ##,,,,,## ##,,,,,#" ##         ##   ##  ##     ##
+//    ###    ######### #######"  ########  ##,,,,,## ##     ##
+//    ###    ##"""""## ##"""##,  ##"""""   ######### ##     ##
+//    ###    ##     ## ##   "##, ##,,,,,,  ##"""""## ##,,,,,#"
+//    ###    ##     ## ##    "## ######### ##     ## #######"
 
 int Draggoon::DConsoleEngine::engineFunction() {
 
@@ -459,6 +440,37 @@ int Draggoon::DConsoleEngine::engineFunction() {
 	return 0;
 }
 
+void Draggoon::DConsoleEngine::externalStart(const bool & t_nonBlocking) {
+	m_asyncRunning = t_nonBlocking;
+
+
+	m_runEngine = true;
+
+	m_engineThread = new std::thread(&Draggoon::DConsoleEngine::engineFunction, this);
+
+	if (m_asyncRunning)
+		return;
+
+	m_engineThread->join();
+	delete m_engineThread;
+}
+
+void Draggoon::DConsoleEngine::externalStop() {
+	m_runEngine = false;
+
+	if (m_engineThread == nullptr)
+		throw "DConsoleEngine::externalStop: Engine not running";
+
+	m_engineThread->join();
+	delete m_engineThread;
+
+	SetConsoleActiveScreenBuffer(m_originalScreenBuffer);
+}
+
+void Draggoon::DConsoleEngine::internalStop() {
+	m_runEngine = false;
+}
+
 BOOL Draggoon::DConsoleEngine::consoleEventHandler(DWORD event) {
 	if (event == CTRL_CLOSE_EVENT || event == CTRL_C_EVENT || event == CTRL_LOGOFF_EVENT || event == CTRL_SHUTDOWN_EVENT) {
 		m_runEngine = false;
@@ -469,10 +481,6 @@ BOOL Draggoon::DConsoleEngine::consoleEventHandler(DWORD event) {
 	}
 
 	return FALSE;
-}
-
-Draggoon::Vector2D<int> Draggoon::DConsoleEngine::getSize() const {
-	return m_actualSize;
 }
 
 
@@ -490,6 +498,17 @@ void Draggoon::DConsoleEngine::clearScreen() {
 
 void Draggoon::DConsoleEngine::setPixel(Vector2D<int> t_pix, Color<float> t_color) {
 	setChar(t_pix, C_SPACE, COLOR_F_TRANSPARENT, t_color);
+}
+
+void Draggoon::DConsoleEngine::setPixel(Vector2D<int> t_pix, char t_consoleColor) {
+	if (t_pix.isContainedIn(m_bufferSize)) {
+
+		int bufferPos(t_pix.getY() * m_bufferSize.getX() + t_pix.getX());
+		m_pixelsBuffer[bufferPos].Char.UnicodeChar = C_SPACE;
+		m_pixelsBuffer[bufferPos].Attributes = (m_pixelsBuffer[bufferPos].Attributes & 0xFF0F) | ((t_consoleColor & 0x000F) << 4);
+	}
+	//else
+	//	throw "Tried to draw outside of screen.";
 }
 
 void Draggoon::DConsoleEngine::setChar(Draggoon::Vector2D<int> t_pix, short t_char, Draggoon::Color<float> t_charColor, Draggoon::Color<float> t_backColor) {

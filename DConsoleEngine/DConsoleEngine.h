@@ -111,6 +111,8 @@ namespace Draggoon {
 
 		void setPixel(Vector2D<int> t_pix, Color<float> t_color);
 
+		void setPixel(Vector2D<int> t_pix, char t_consoleColor);
+
 		/// <summary>Changes a character on the console.</summary>
 		/// <param name="t_pix">The char position on the console screen (top: y=0, left: x=0).</param>
 		/// <param name="t_char">The character to display. defaults to a "full block" unicode character.</param>
