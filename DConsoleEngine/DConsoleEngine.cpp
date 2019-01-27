@@ -304,44 +304,46 @@ int Draggoon::DConsoleEngine::engineFunction() {
 		tStartLoop = std::chrono::high_resolution_clock::now();
 
 		// Process inputs
-		for (int i(0); i<KEY_COUNT; ++i) {
-			m_key[i].setState((GetAsyncKeyState(i) & 0x8000) != 0);	// GetAsyncKeyState returns a short, MSB set = key is down. 
-																	// (LSB set = key pressed since last call, but not reliable)
-		}
-		INPUT_RECORD record;
-		DWORD nbToRead, nbRead;
-		bool mouseBtnDownTemp[MOUSE_BTN_COUNT];
-		for (int i(0); i<MOUSE_BTN_COUNT; ++i) {
-			mouseBtnDownTemp[i] = m_mouseBtn[i].isDown();
-		}
-		// Must check if events are available, otherwise ReadConsoleInput hangs until an event arrives.
-		GetNumberOfConsoleInputEvents(m_inputHandle, &nbToRead);
-		while (nbToRead>0) {
-			ReadConsoleInput(m_inputHandle, &record, 1, &nbRead);
-			switch (record.EventType) {
-			case MOUSE_EVENT: {
-				m_mousePosition = {record.Event.MouseEvent.dwMousePosition.X, record.Event.MouseEvent.dwMousePosition.Y};
-				for(int i(0); i<MOUSE_BTN_COUNT; ++i)
-					mouseBtnDownTemp[i] = (record.Event.MouseEvent.dwButtonState & (1<<i)) != 0;
-				break;
+		if (GetForegroundWindow() == GetConsoleWindow()) {
+			for (int i(0); i<KEY_COUNT; ++i) {
+				m_key[i].setState((GetAsyncKeyState(i) & 0x8000) != 0);	// GetAsyncKeyState returns a short, MSB set = key is down. 
+																		// (LSB set = key pressed since last call, but not reliable)
 			}
-			case KEY_EVENT:
-				break;
-			case FOCUS_EVENT:
-				break;
-			case MENU_EVENT:
-				break;
-			case WINDOW_BUFFER_SIZE_EVENT:
-				break;
-			default:;
+			INPUT_RECORD record;
+			DWORD nbToRead, nbRead;
+			bool mouseBtnDownTemp[MOUSE_BTN_COUNT];
+			for (int i(0); i<MOUSE_BTN_COUNT; ++i) {
+				mouseBtnDownTemp[i] = m_mouseBtn[i].isDown();
 			}
-			nbToRead -= nbRead;
-		}
-		for (int i(0); i<MOUSE_BTN_COUNT; ++i)
-			m_mouseBtn[i].setState(mouseBtnDownTemp[i]);
+			// Must check if events are available, otherwise ReadConsoleInput hangs until an event arrives.
+			GetNumberOfConsoleInputEvents(m_inputHandle, &nbToRead);
+			while (nbToRead>0) {
+				ReadConsoleInput(m_inputHandle, &record, 1, &nbRead);
+				switch (record.EventType) {
+				case MOUSE_EVENT: {
+					m_mousePosition ={record.Event.MouseEvent.dwMousePosition.X, record.Event.MouseEvent.dwMousePosition.Y};
+					for (int i(0); i<MOUSE_BTN_COUNT; ++i)
+						mouseBtnDownTemp[i] = (record.Event.MouseEvent.dwButtonState & (1<<i)) != 0;
+					break;
+				}
+				case KEY_EVENT:
+					break;
+				case FOCUS_EVENT:
+					break;
+				case MENU_EVENT:
+					break;
+				case WINDOW_BUFFER_SIZE_EVENT:
+					break;
+				default:;
+				}
+				nbToRead -= nbRead;
+			}
+			for (int i(0); i<MOUSE_BTN_COUNT; ++i)
+				m_mouseBtn[i].setState(mouseBtnDownTemp[i]);
 
-		if (!onInputUpdate(m_key, KEY_COUNT, m_mouseBtn, MOUSE_BTN_COUNT)) {
-			m_runEngine = false;
+			if (!onInputUpdate(m_key, KEY_COUNT, m_mouseBtn, MOUSE_BTN_COUNT)) {
+				m_runEngine = false;
+			}
 		}
 		tInputProcessed = std::chrono::high_resolution_clock::now();
 

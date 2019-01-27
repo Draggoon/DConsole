@@ -6,6 +6,7 @@
 #include <string>
 #include <algorithm>
 #include <fstream>
+#include <random>
 
 class DConsoleDraw : public Draggoon::DConsoleEngine {
 public:
@@ -35,5 +36,8 @@ protected:
 	int m_selectedColor;
 
 	char* m_drawBuffer;
+	bool m_drawAreaChanged;
+
+	std::default_random_engine m_randomGenerator;
 };
 

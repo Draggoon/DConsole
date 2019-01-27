@@ -20,7 +20,9 @@ m_colors{Draggoon::COLOR_F_WHITE,
 	Draggoon::COLOR_F_DARK_PURPLE,
 	Draggoon::COLOR_F_BLACK},
 m_selectedColor(0),
-m_drawBuffer(nullptr)
+m_randomGenerator((int)std::chrono::high_resolution_clock::now().time_since_epoch().count()),
+m_drawBuffer(nullptr),
+m_drawAreaChanged(true)
 {
 	m_drawBuffer = new char[m_drawSize.getArea()];
 	memset(m_drawBuffer, 0, m_drawSize.getArea());
@@ -37,12 +39,7 @@ bool DConsoleDraw::onCreate() {
 	m_clearScreenBeforeUpdate = false;
 
 	m_stretchOnResize = true;
-	if (m_drawSize.getX()+4 < 8+COLOR_COUNT+1)
-		setSize({COLOR_COUNT+8+1 ,m_drawSize.getY()+7});
-	else
-		setSize({m_drawSize.getX()+4,m_drawSize.getY()+7});
-	setPixelSize({24,24});
-
+	setDrawSize(m_drawSize);
 	return true;
 }
 
@@ -53,7 +50,6 @@ bool DConsoleDraw::onInitialized() {
 }
 
 bool DConsoleDraw::onInputUpdate(const Draggoon::Key * keys, const size_t & keyCount, const Draggoon::Key * mouseBtn, const size_t & mouseBtnCount) {
-
 	if (keys[VK_ESCAPE].isPressed())
 		internalStop();
 
@@ -74,7 +70,6 @@ bool DConsoleDraw::onInputUpdate(const Draggoon::Key * keys, const size_t & keyC
 			}
 			else {
 				MessageBoxA(NULL, "Unable to open file", "Error", MB_OK | MB_ICONEXCLAMATION);
-				//throw "DConsoleDraw::onInputUpdate: Unable to get filename.";
 			}
 		}
 		if (keys['S'].isPressed()) {
@@ -93,8 +88,15 @@ bool DConsoleDraw::onInputUpdate(const Draggoon::Key * keys, const size_t & keyC
 			}
 			else {
 				MessageBoxA(NULL, "Unable to save file", "Error", MB_OK | MB_ICONEXCLAMATION);
-				//throw "DConsoleDraw::onInputUpdate: Unable to get filename.";
 			}
+		}
+		if (keys['R'].isPressed()) {
+			std::uniform_int_distribution<int> dist(0, 0x0F);
+			for (int y(0); y<m_drawSize.getY(); ++y)
+				for (int x(0); x < m_drawSize.getX(); ++x)
+					m_drawBuffer[y*m_drawSize.getX() + x] = dist(m_randomGenerator);
+
+			m_drawAreaChanged = true;
 		}
 	}
 
@@ -103,7 +105,6 @@ bool DConsoleDraw::onInputUpdate(const Draggoon::Key * keys, const size_t & keyC
 			m_selectedColor = 1;
 		else
 			m_selectedColor = 0;
-			
 	if (keys['2'].isPressed())
 		if (keys[VK_SHIFT].isDown())
 			m_selectedColor = 3;
@@ -141,6 +142,7 @@ bool DConsoleDraw::onInputUpdate(const Draggoon::Key * keys, const size_t & keyC
 		int mx(getMousePosition().getX()), my(getMousePosition().getY());
 		if (mx > 1 && mx <= m_drawSize.getX()+1 && my > 4 && my <= m_drawSize.getY()+4) {
 			m_drawBuffer[(my-5) * m_drawSize.getX() + mx-2] = m_colors[m_selectedColor].getConsoleColor();
+			m_drawAreaChanged = true;
 		}
 		else if (mx > 7 && mx <= 7+COLOR_COUNT && my == 1) {
 			m_selectedColor = mx-8;
@@ -151,6 +153,7 @@ bool DConsoleDraw::onInputUpdate(const Draggoon::Key * keys, const size_t & keyC
 		int mx(getMousePosition().getX()), my(getMousePosition().getY());
 		if (mx > 1 && mx <= m_drawSize.getX()+1 && my > 4 && my <= m_drawSize.getY()+4) {
 			m_drawBuffer[(my-5) * m_drawSize.getX() + mx-2] = m_colors[COLOR_COUNT-1].getConsoleColor();
+			m_drawAreaChanged = true;
 		}
 	}
 
@@ -160,7 +163,11 @@ bool DConsoleDraw::onInputUpdate(const Draggoon::Key * keys, const size_t & keyC
 void DConsoleDraw::setDrawSize(Draggoon::Vector2D<int> newSize) {
 	if (newSize.getX() > 0 && newSize.getY() > 0) {
 		setPixelSize({12,12});
-		setSize({m_drawSize.getX()+4,m_drawSize.getY()+7});
+
+		if (m_drawSize.getX()+4 < 8+COLOR_COUNT+1)
+			setSize({COLOR_COUNT+8+1 ,m_drawSize.getY()+7});
+		else
+			setSize({m_drawSize.getX()+4,m_drawSize.getY()+7});
 
 		if (m_drawBuffer != nullptr)
 			delete[] m_drawBuffer;
@@ -168,6 +175,7 @@ void DConsoleDraw::setDrawSize(Draggoon::Vector2D<int> newSize) {
 		m_drawBuffer = new char[m_drawSize.getArea()];
 		memset(m_drawBuffer, 0, m_drawSize.getArea());
 
+		m_drawAreaChanged = true;
 	}
 }
 
@@ -229,8 +237,11 @@ bool DConsoleDraw::onScreenUpdate(const std::chrono::duration<float>& elapsedTim
 	}
 
 	// Draw area
-	for (int i(0); i<m_drawSize.getArea(); ++i) {
-		setPixel({i%m_drawSize.getX() + 2, i/m_drawSize.getX() +5}, m_drawBuffer[i]);
+	if (m_drawAreaChanged) {
+		for (int i(0); i<m_drawSize.getArea(); ++i) {
+			setPixel({i%m_drawSize.getX() + 2, i/m_drawSize.getX() +5}, m_drawBuffer[i]);
+		}
+		m_drawAreaChanged = false;
 	}
 
 	return true;
@@ -239,7 +250,19 @@ bool DConsoleDraw::onScreenUpdate(const std::chrono::duration<float>& elapsedTim
 
 
 int main(int argc, char** argv) {
+	int x(16), y(16);
 	DConsoleDraw d;
+
+	if (argc >= 3) {
+		x = std::stoi(argv[1]);
+		y = std::stoi(argv[2]);
+	}
+	if (x >= 8 && y >= 8)
+		d.setDrawSize({x,y});
+	else
+		d.setDrawSize({16,16});
+
+
 	try {
 		d.externalStart();
 	}
