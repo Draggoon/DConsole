@@ -2,7 +2,15 @@
 
 
 
-DCellularAutomata::DCellularAutomata() : m_arraySize(100,80), m_turnLength(1.0f), m_sumOfElapsedTime(0.0f), m_runAutomata(false), m_randomGenerator((int)std::chrono::high_resolution_clock::now().time_since_epoch().count()){
+DCellularAutomata::DCellularAutomata() :
+	m_arraySize(100,80),
+	m_turnLength(1.0f),
+	m_sumOfElapsedTime(0.0f),
+	m_runAutomata(false),
+	m_randomGenerator((int)std::chrono::high_resolution_clock::now().time_since_epoch().count()),
+	m_aliveColor(Draggoon::COLOR_F_WHITE),
+	m_deadColor(Draggoon::COLOR_F_BLACK) 
+{
 	m_cell = new std::pair<bool, int>[m_arraySize.getArea()];
 }
 
@@ -116,9 +124,9 @@ bool DCellularAutomata::onScreenUpdate(const std::chrono::duration<float>& elaps
 	for (int y(0); y < m_arraySize.getY(); ++y) {
 		for (int x(0); x < m_arraySize.getX(); ++x) {
 			if (isAlive({x,y}))
-				setPixel({x,y}, Draggoon::COLOR_F_WHITE);
+				setPixel({x,y}, m_aliveColor);// Draggoon::COLOR_F_WHITE);
 			else
-				setPixel({x,y}, Draggoon::COLOR_F_BLACK);
+				setPixel({x,y}, m_deadColor);// Draggoon::COLOR_F_BLACK);
 		}
 	}
 
@@ -174,6 +182,7 @@ int main(int argc, char** argv) {
 	}
 	catch (const char* s) {
 		std::cerr << s << std::endl;
+		Sleep(2000);
 	}
 
 	return 0;

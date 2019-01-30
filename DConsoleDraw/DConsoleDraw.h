@@ -31,7 +31,7 @@ protected:
 
 	Draggoon::Vector2D<int> m_drawSize;
 
-	static const int COLOR_COUNT = 15;
+	static const int COLOR_COUNT = 16;
 	Draggoon::Color<float> m_colors[COLOR_COUNT];
 	int m_selectedColor;
 

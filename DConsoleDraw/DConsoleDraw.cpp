@@ -6,6 +6,8 @@ DConsoleDraw::DConsoleDraw() :
 m_drawSize(16, 16),
 m_colors{Draggoon::COLOR_F_WHITE,
 	Draggoon::COLOR_F_GRAY,
+	Draggoon::COLOR_F_BLACK,
+	Draggoon::COLOR_F_DARK_GRAY,
 	Draggoon::COLOR_F_RED,
 	Draggoon::COLOR_F_DARK_RED,
 	Draggoon::COLOR_F_YELLOW,
@@ -16,9 +18,8 @@ m_colors{Draggoon::COLOR_F_WHITE,
 	Draggoon::COLOR_F_DARK_CYAN,
 	Draggoon::COLOR_F_BLUE,
 	Draggoon::COLOR_F_DARK_BLUE,
-	Draggoon::COLOR_F_PURPLE,
-	Draggoon::COLOR_F_DARK_PURPLE,
-	Draggoon::COLOR_F_BLACK},
+	Draggoon::COLOR_F_MAGENTA,
+	Draggoon::COLOR_F_DARK_MAGENTA},
 m_selectedColor(0),
 m_randomGenerator((int)std::chrono::high_resolution_clock::now().time_since_epoch().count()),
 m_drawBuffer(nullptr),
@@ -136,7 +137,10 @@ bool DConsoleDraw::onInputUpdate(const Draggoon::Key * keys, const size_t & keyC
 		else
 			m_selectedColor = 12;
 	if (keys['8'].isPressed())
-		m_selectedColor = 14;
+		if (keys[VK_SHIFT].isDown())
+			m_selectedColor = 15;
+		else
+			m_selectedColor = 14;
 
 	if (mouseBtn[0].isDown()) {
 		int mx(getMousePosition().getX()), my(getMousePosition().getY());

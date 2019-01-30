@@ -2,6 +2,9 @@
 
 #include "DConsoleEngine.h"
 
+#include <fstream>
+#include <string.h>
+
 namespace TestUser {
 
 	class TestEngine : public Draggoon::DConsoleEngine {
@@ -22,6 +25,12 @@ namespace TestUser {
 		bool m_mouseMoved;
 		Draggoon::Vector2D<int> m_btnPressLocation;
 		Draggoon::Vector2D<int> m_btnReleaseLocation;
+
+		CHAR_INFO m_tampon;
+		bool m_tamponSet;
+
+		Draggoon::Color<float>* m_picture;
+		Draggoon::Vector2D<int> m_pictureSize;
 	};
 }
 

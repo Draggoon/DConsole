@@ -13,13 +13,6 @@
 
 namespace Draggoon {
 
-	extern short C_FULL_BLOCK;		// █
-	extern short C_DARK_SHADE;		// ▓
-	extern short C_MEDIUM_SHADE;	// ▒
-	extern short C_LIGHT_SHADE;		// ░
-	extern short C_SPACE;			//  
-
-
 	/// <summary>Holds the state of a key</summary>
 	class Key {
 	public:
@@ -107,6 +100,8 @@ namespace Draggoon {
 		/// <summary>Returns the current size of the console window.</summary>
 		Draggoon::Vector2D<int> getSize() const;
 
+		CHAR_INFO getCharInfo(Vector2D<int> t_pos);
+
 		void clearScreen();
 
 		void setPixel(Vector2D<int> t_pix, Color<float> t_color);
@@ -119,6 +114,8 @@ namespace Draggoon {
 		/// <param name="t_charColor">The color of the character.</param>
 		/// <param name="t_backColor">The color of the cell behind the character.</param>
 		void setChar(Draggoon::Vector2D<int> t_pix, short t_char=C_FULL_BLOCK, Color<float> t_charColor=COLOR_F_WHITE, Color<float> t_backColor=COLOR_F_BLACK);
+
+		void setChar(Draggoon::Vector2D<int> t_pix, const CHAR_INFO& t_char);
 		
 		void setCharAlpha(Draggoon::Vector2D<int> t_pix, short t_char, Color<float> t_charColor=COLOR_F_WHITE);
 		
