@@ -90,11 +90,11 @@ Draggoon::DConsoleEngine::~DConsoleEngine() {
 		delete[] m_pixelsBuffer;
 }
 
-
+#ifdef WIN32
 void Draggoon::DConsoleEngine::initConsole() {
 	m_originalScreenBuffer = GetStdHandle(STD_OUTPUT_HANDLE);
 	if (m_originalScreenBuffer == INVALID_HANDLE_VALUE)
-		throw "Draggoon::DConsoleEngine::initConsole: Unable to get console handle.";
+		throw std::runtime_error("Draggoon::DConsoleEngine::initConsole: Unable to get console handle.");
 
 	m_inputHandle = GetStdHandle(STD_INPUT_HANDLE);
 
@@ -107,17 +107,30 @@ void Draggoon::DConsoleEngine::initConsole() {
 
 	bool r = SetConsoleActiveScreenBuffer(m_screenBuffer);
 	if (!r) {
-		throw "Draggoon::DConsoleEngine::initConsole: Unable to set the new screenBuffer.";
+		SetConsoleActiveScreenBuffer(m_originalScreenBuffer);
+		throw std::runtime_error("Draggoon::DConsoleEngine::initConsole: Unable to set the new screenBuffer.");
 	}
-	if(m_desiredWindowSize.getX() < 50 || m_desiredWindowSize.getY() < 50)
-		throw "Draggoon::DConsoleEngine::initConsole: Desired size too small.";
-	resizeConsole(m_desiredWindowSize);
+	if(m_desiredWindowSize.getX() < 50 || m_desiredWindowSize.getY() < 50) {
+		SetConsoleActiveScreenBuffer(m_originalScreenBuffer);
+		throw std::runtime_error("Draggoon::DConsoleEngine::initConsole: Desired size too small.");
+	}
+	try {
+		resizeConsole(m_desiredWindowSize);
+	}
+	catch(std::runtime_error e)
 
 	SetConsoleCtrlHandler(Draggoon::DConsoleEngine::consoleEventHandler, TRUE);
 
 	m_windowCreated = true;
 }
+#else
+void Draggoon::DConsoleEngine::initConsole() {
+	throw std::runtime_error("Draggoon::DConsoleEngine::initConsole: not implemented!");
+	m_windowCreated = false;	// TODO change
+}
+#endif
 
+#ifdef WIN32
 void Draggoon::DConsoleEngine::resizeConsole(const Draggoon::Vector2D<int>& newSize) {
 	Draggoon::Vector2D<int> clippedSize=newSize;
 	if (newSize.getX() < 50) {
@@ -157,7 +170,7 @@ void Draggoon::DConsoleEngine::resizeConsole(const Draggoon::Vector2D<int>& newS
 	wcscpy_s(fontInfo.FaceName, L"Consolas");
 	bool r = SetCurrentConsoleFontEx(m_screenBuffer, false, &fontInfo);
 	if (!r) {
-		throw "Draggoon::DConsoleEngine::resizeConsole: Unable to set the font size.";
+		throw std::runtime_error("Draggoon::DConsoleEngine::resizeConsole: Unable to set the font size.");
 	}
 
 
@@ -170,7 +183,7 @@ void Draggoon::DConsoleEngine::resizeConsole(const Draggoon::Vector2D<int>& newS
 	size.Right = 1;
 	r = SetConsoleWindowInfo(m_screenBuffer, TRUE, &size);
 	if (!r) {
-		throw "Draggoon::DConsoleEngine::resizeConsole: Unable to set console window size to 0.";
+		throw std::runtime_error("Draggoon::DConsoleEngine::resizeConsole: Unable to set console window size to 0.");
 	}
 
 	COORD coord;
@@ -185,17 +198,17 @@ void Draggoon::DConsoleEngine::resizeConsole(const Draggoon::Vector2D<int>& newS
 	r = SetConsoleScreenBufferSize(m_screenBuffer, coord);
 	if (!r) {
 		//resizeConsole(m_actualWindowSize);
-		throw "Draggoon::DConsoleEngine::resizeConsole: Unable to set screen buffer size.";
+		throw std::runtime_error("Draggoon::DConsoleEngine::resizeConsole: Unable to set screen buffer size.");
 	}
 
 
 	CONSOLE_SCREEN_BUFFER_INFO screenInfo;
 	GetConsoleScreenBufferInfo(m_screenBuffer, &screenInfo);
 	if (coord.X > screenInfo.dwMaximumWindowSize.X || coord.Y > screenInfo.dwMaximumWindowSize.Y)
-		throw "Draggoon::DConsoleEngine::resizeConsole: New size is greater than the maximum allowed.";
+		throw std::runtime_error("Draggoon::DConsoleEngine::resizeConsole: New size is greater than the maximum allowed.");
 
 	if (clippedSize.getX() <= 0 || clippedSize.getY() <= 0) {
-		throw "Draggoon::DConsoleEngine::resizeConsole: New size is 0";
+		throw std::runtime_error("Draggoon::DConsoleEngine::resizeConsole: New size is 0");
 	}
 
 	m_actualSize.setX(coord.X);
@@ -209,7 +222,7 @@ void Draggoon::DConsoleEngine::resizeConsole(const Draggoon::Vector2D<int>& newS
 	rect.Right = m_actualSize.getX()-1;
 	r = SetConsoleWindowInfo(m_screenBuffer, TRUE, &rect);
 	if (!r)
-		throw "Draggoon::DConsoleEngine::resizeConsole: Unable to set the console window height and width.";
+		throw std::runtime_error("Draggoon::DConsoleEngine::resizeConsole: Unable to set the console window height and width.");
 
 	m_actualWindowSize = clippedSize;
 
@@ -222,7 +235,7 @@ void Draggoon::DConsoleEngine::resizeConsole(const Draggoon::Vector2D<int>& newS
 		int bufferSize = m_bufferSize.getArea();
 		m_pixelsBuffer = new CHAR_INFO[bufferSize];
 		if (m_pixelsBuffer == nullptr)
-			throw "Draggoon::DConsoleEngine::resizeConsole: Memory allocation error.";
+			throw std::runtime_error("Draggoon::DConsoleEngine::resizeConsole: Memory allocation error.");
 		memset(m_pixelsBuffer, 0, bufferSize);
 
 
@@ -234,10 +247,44 @@ void Draggoon::DConsoleEngine::resizeConsole(const Draggoon::Vector2D<int>& newS
 	cursorInfo.bVisible = false;
 	SetConsoleCursorInfo(m_screenBuffer, &cursorInfo);
 }
+#else
+void Draggoon::DConsoleEngine::resizeConsole(const Draggoon::Vector2D<int>& newSize) {
+	throw std::runtime_error("Draggoon::DConsoleEngine::resizeConsole: not implemented!");
+}
+#endif
 
+#ifdef WIN32
+Draggoon::Vector2D<int> Draggoon::DConsoleEngine::getConsoleSize() {
+		RECT winRect;
+		GetClientRect(GetConsoleWindow(), &winRect);
+		return Draggoon::Vector2D<int> ((winRect.right-winRect.left), (winRect.bottom-winRect.top));
+}
+#else
+Draggoon::Vector2D<int> Draggoon::DConsoleEngine::getConsoleSize() {
+	throw std::runtime_error("Draggoon::DConsoleEngine::getConsoleSize: not implemented!");
+}
+#endif
+
+#ifdef WIN32
+Draggoon::Vector2D<int> Draggoon::DConsoleEngine::refreshConsoleScreen() {
+	COORD bufferSize;
+	bufferSize.X = m_bufferSize.getX();
+	bufferSize.Y = m_bufferSize.getY();
+	SMALL_RECT rect;
+	rect.Top = 0;
+	rect.Bottom = m_actualSize.getY();
+	rect.Left = 0;
+	rect.Right = m_actualSize.getX();
+	WriteConsoleOutput(m_screenBuffer, m_pixelsBuffer, bufferSize, {0,0}, &rect);
+}
+#else
+Draggoon::Vector2D<int> Draggoon::DConsoleEngine::refreshConsoleScreen() {
+	throw std::runtime_error("Draggoon::DConsoleEngine::refreshConsoleScreen: not implemented!");
+}
+#endif
 void Draggoon::DConsoleEngine::setSize(Draggoon::Vector2D<int> t_size) {
 	if (t_size.getX() <= 0 || t_size.getY() <= 0)
-		throw "Draggoon::DConsoleEngine::setSize: Tried to set a size <= 0.";
+		throw std::runtime_error("Draggoon::DConsoleEngine::setSize: Tried to set a size <= 0.");
 	m_desiredSize = t_size;
 	m_desiredWindowSize.setX(m_desiredPixelSize.getX() * m_desiredSize.getX());
 	m_desiredWindowSize.setY(m_desiredPixelSize.getY() * m_desiredSize.getY());
@@ -245,7 +292,7 @@ void Draggoon::DConsoleEngine::setSize(Draggoon::Vector2D<int> t_size) {
 
 void Draggoon::DConsoleEngine::setPixelSize(Draggoon::Vector2D<int> t_pixSize) {
 	if (t_pixSize.getX() <= 0 || t_pixSize.getY() <= 0)
-		throw "Draggoon::DConsoleEngine::setPixelSize: Tried to set a pixel size <= 0.";
+		throw std::runtime_error("Draggoon::DConsoleEngine::setPixelSize: Tried to set a pixel size <= 0.");
 	m_desiredPixelSize = t_pixSize;
 	m_desiredWindowSize.setX(m_desiredPixelSize.getX() * m_desiredSize.getX());
 	m_desiredWindowSize.setY(m_desiredPixelSize.getY() * m_desiredSize.getY());
@@ -259,6 +306,55 @@ Draggoon::Vector2D<int> Draggoon::DConsoleEngine::getSize() const {
 	return m_actualSize;
 }
 
+#ifdef WIN32
+void Draggoon::DConsoleEngine::processInputs() {
+	if (GetForegroundWindow() == GetConsoleWindow()) {
+		for (int i(0); i<KEY_COUNT; ++i) {
+			m_key[i].setState((GetAsyncKeyState(i) & 0x8000) != 0);	// GetAsyncKeyState returns a short, MSB set = key is down. 
+																	// (LSB set = key pressed since last call, but not reliable)
+		}
+		INPUT_RECORD record;
+		DWORD nbToRead, nbRead;
+		bool mouseBtnDownTemp[MOUSE_BTN_COUNT];
+		for (int i(0); i<MOUSE_BTN_COUNT; ++i) {
+			mouseBtnDownTemp[i] = m_mouseBtn[i].isDown();
+		}
+		// Must check if events are available, otherwise ReadConsoleInput hangs until an event arrives.
+		GetNumberOfConsoleInputEvents(m_inputHandle, &nbToRead);
+		while (nbToRead>0) {
+			ReadConsoleInput(m_inputHandle, &record, 1, &nbRead);
+			switch (record.EventType) {
+			case MOUSE_EVENT: {
+				m_mousePosition ={record.Event.MouseEvent.dwMousePosition.X, record.Event.MouseEvent.dwMousePosition.Y};
+				for (int i(0); i<MOUSE_BTN_COUNT; ++i)
+					mouseBtnDownTemp[i] = (record.Event.MouseEvent.dwButtonState & (1<<i)) != 0;
+				break;
+			}
+			case KEY_EVENT:
+				break;
+			case FOCUS_EVENT:
+				break;
+			case MENU_EVENT:
+				break;
+			case WINDOW_BUFFER_SIZE_EVENT:
+				break;
+			default:;
+			}
+			nbToRead -= nbRead;
+		}
+		for (int i(0); i<MOUSE_BTN_COUNT; ++i)
+			m_mouseBtn[i].setState(mouseBtnDownTemp[i]);
+
+		if (!onInputUpdate(m_key, KEY_COUNT, m_mouseBtn, MOUSE_BTN_COUNT)) {
+			m_runEngine = false;
+		}
+	}
+}
+#else
+void Draggoon::DConsoleEngine::processInputs() {
+	throw std::runtime_error("Draggoon::DConsoleEngine::processInputs: not implemented!");
+}
+#endif
 
 // ######### ##     ## #######,  #########    ###    #######,
 // """###""" ##     ## ##"""""#, ##""""""    ##"##   ##"""""#,
@@ -277,10 +373,9 @@ int Draggoon::DConsoleEngine::engineFunction() {
 	try {
 		initConsole();
 	}
-	catch (const char* s) {
-		SetConsoleActiveScreenBuffer(m_originalScreenBuffer);
-		std::cerr << s << " (Last error = " << GetLastError() << ")" << std::endl;
-		throw "Draggoon::DConsoleEngine::externalStart: Console initialization failed.";
+	catch (std::runtime_error e) {
+		std::cerr << e.what() << std::endl;
+		throw std::runtime_error("Draggoon::DConsoleEngine::externalStart: Console initialization failed.");
 	}
 
 	if (!onInitialized()) {
@@ -304,60 +399,18 @@ int Draggoon::DConsoleEngine::engineFunction() {
 		tStartLoop = std::chrono::high_resolution_clock::now();
 
 		// Process inputs
-		if (GetForegroundWindow() == GetConsoleWindow()) {
-			for (int i(0); i<KEY_COUNT; ++i) {
-				m_key[i].setState((GetAsyncKeyState(i) & 0x8000) != 0);	// GetAsyncKeyState returns a short, MSB set = key is down. 
-																		// (LSB set = key pressed since last call, but not reliable)
-			}
-			INPUT_RECORD record;
-			DWORD nbToRead, nbRead;
-			bool mouseBtnDownTemp[MOUSE_BTN_COUNT];
-			for (int i(0); i<MOUSE_BTN_COUNT; ++i) {
-				mouseBtnDownTemp[i] = m_mouseBtn[i].isDown();
-			}
-			// Must check if events are available, otherwise ReadConsoleInput hangs until an event arrives.
-			GetNumberOfConsoleInputEvents(m_inputHandle, &nbToRead);
-			while (nbToRead>0) {
-				ReadConsoleInput(m_inputHandle, &record, 1, &nbRead);
-				switch (record.EventType) {
-				case MOUSE_EVENT: {
-					m_mousePosition ={record.Event.MouseEvent.dwMousePosition.X, record.Event.MouseEvent.dwMousePosition.Y};
-					for (int i(0); i<MOUSE_BTN_COUNT; ++i)
-						mouseBtnDownTemp[i] = (record.Event.MouseEvent.dwButtonState & (1<<i)) != 0;
-					break;
-				}
-				case KEY_EVENT:
-					break;
-				case FOCUS_EVENT:
-					break;
-				case MENU_EVENT:
-					break;
-				case WINDOW_BUFFER_SIZE_EVENT:
-					break;
-				default:;
-				}
-				nbToRead -= nbRead;
-			}
-			for (int i(0); i<MOUSE_BTN_COUNT; ++i)
-				m_mouseBtn[i].setState(mouseBtnDownTemp[i]);
-
-			if (!onInputUpdate(m_key, KEY_COUNT, m_mouseBtn, MOUSE_BTN_COUNT)) {
-				m_runEngine = false;
-			}
-		}
+		processInputs();
 		tInputProcessed = std::chrono::high_resolution_clock::now();
 
 		// Check Window size
-		RECT winRect;
-		GetClientRect(GetConsoleWindow(), &winRect);
-		int width(winRect.right-winRect.left), height(winRect.bottom-winRect.top);
-		if (width != m_actualWindowSize.getX() || height != m_actualWindowSize.getY()) {
+		Draggoon::Vector2D<int> consoleSize = getConsoleSize();
+		if (consoleSize.getX() != m_actualWindowSize.getX() || consoleSize.getY() != m_actualWindowSize.getY()) {
 			try {
-				resizeConsole(Draggoon::Vector2D<int>(width, height));
+				resizeConsole(Draggoon::Vector2D<int>(consoleSize.getX(), consoleSize.getY()));
 			}
-			catch (const char* s) {
+			catch (std::runtime_error s) {
 #ifdef _DEBUG
-				std::cerr << s << std::endl;
+				std::cerr << s.what() << std::endl;
 #endif
 			}
 		}
@@ -377,15 +430,7 @@ int Draggoon::DConsoleEngine::engineFunction() {
 		tBufferUpdated = std::chrono::high_resolution_clock::now();
 
 		// Refresh the screen
-		COORD bufferSize;
-		bufferSize.X = m_bufferSize.getX();
-		bufferSize.Y = m_bufferSize.getY();
-		SMALL_RECT rect;
-		rect.Top = 0;
-		rect.Bottom = m_actualSize.getY();
-		rect.Left = 0;
-		rect.Right = m_actualSize.getX();
-		WriteConsoleOutput(m_screenBuffer, m_pixelsBuffer, bufferSize, {0,0}, &rect);
+		refreshConsoleScreen();
 
 		tScreenRefreshed = std::chrono::high_resolution_clock::now();
 
@@ -395,10 +440,10 @@ int Draggoon::DConsoleEngine::engineFunction() {
 			if (framerateDelta.count() < 1.0/m_framerate) {
 				std::this_thread::sleep_for(std::chrono::microseconds( (long)( (1.0/m_framerate - framerateDelta.count())*1000000 )) );
 			}
-			swprintf_s(title, 256, L"%s - %dx%d - %3.2f/%d fps", m_appName.c_str(), m_actualSize.getX(), m_actualSize.getY(), 1.0/userDelta.count(), m_framerate);
+			swprintf(title, 256, L"%s - %dx%d - %3.2f/%d fps", m_appName.c_str(), m_actualSize.getX(), m_actualSize.getY(), 1.0/userDelta.count(), m_framerate);
 		}
 		else
-			swprintf_s(title, 256, L"%s - %dx%d - %3.2f fps", m_appName.c_str(), m_actualSize.getX(), m_actualSize.getY(), 1.0/userDelta.count());
+			swprintf(title, 256, L"%s - %dx%d - %3.2f fps", m_appName.c_str(), m_actualSize.getX(), m_actualSize.getY(), 1.0/userDelta.count());
 
 		SetConsoleTitle(title);
 		tFramerateAdapted = std::chrono::high_resolution_clock::now();
@@ -411,7 +456,7 @@ int Draggoon::DConsoleEngine::engineFunction() {
 			float dFramerate(std::chrono::duration_cast<std::chrono::duration<float, std::milli>>(tFramerateAdapted-tScreenRefreshed).count());
 			float dTotal(dInput+dResize+dRefresh+dClean+dUpdate+dRefresh+dFramerate);
 
-			swprintf_s(m_lastFrameStats, 256,
+			swprintf(m_lastFrameStats, 512,
 				L"Input Processing: %5.3f, (%3.f%%)\n"
 				"Resizing: %13.3f, (%3.f%%)\n"
 				"Screen cleaning: %6.3f, (%3.f%%)\n"
@@ -433,11 +478,11 @@ int Draggoon::DConsoleEngine::engineFunction() {
 		std::cerr.rdbuf(m_origCerr);
 		m_cerrFile.close();
 	}
-
+#ifdef WIN32
 	if (m_pixelsBuffer != nullptr)
 		delete[] m_pixelsBuffer;
 	m_pixelsBuffer = nullptr;
-
+#endif
 	m_stopCV.notify_all();
 	return 0;
 }
@@ -461,7 +506,7 @@ void Draggoon::DConsoleEngine::externalStop() {
 	m_runEngine = false;
 
 	if (m_engineThread == nullptr)
-		throw "DConsoleEngine::externalStop: Engine not running";
+		throw std::runtime_error("DConsoleEngine::externalStop: Engine not running");
 
 	m_engineThread->join();
 	delete m_engineThread;
@@ -473,7 +518,8 @@ void Draggoon::DConsoleEngine::internalStop() {
 	m_runEngine = false;
 }
 
-BOOL Draggoon::DConsoleEngine::consoleEventHandler(DWORD event) {
+#ifdef WIN32
+bool Draggoon::DConsoleEngine::consoleEventHandler(unsigned long event) {
 	if (event == CTRL_CLOSE_EVENT || event == CTRL_C_EVENT || event == CTRL_LOGOFF_EVENT || event == CTRL_SHUTDOWN_EVENT) {
 		m_runEngine = false;
 		using namespace std::literals;
@@ -484,6 +530,7 @@ BOOL Draggoon::DConsoleEngine::consoleEventHandler(DWORD event) {
 
 	return FALSE;
 }
+#endif
 
 
 // #######,  #######,     ###    #       #
@@ -510,7 +557,7 @@ void Draggoon::DConsoleEngine::setPixel(Vector2D<int> t_pix, char t_consoleColor
 		m_pixelsBuffer[bufferPos].Attributes = (m_pixelsBuffer[bufferPos].Attributes & 0xFF0F) | ((t_consoleColor & 0x000F) << 4);
 	}
 	//else
-	//	throw "Tried to draw outside of screen.";
+	//	throw std::runtime_error("Tried to draw outside of screen.");
 }
 
 void Draggoon::DConsoleEngine::setChar(Draggoon::Vector2D<int> t_pix, short t_char, Draggoon::Color<float> t_charColor, Draggoon::Color<float> t_backColor) {
@@ -540,7 +587,7 @@ void Draggoon::DConsoleEngine::setChar(Draggoon::Vector2D<int> t_pix, short t_ch
 		}
 	}
 	//else
-	//	throw "Tried to draw outside of screen.";
+	//	throw std::runtime_error("Tried to draw outside of screen.");
 }
 
 void Draggoon::DConsoleEngine::setCharAlpha(Draggoon::Vector2D<int> t_pix, short t_char, Draggoon::Color<float> t_charColor) {
@@ -560,7 +607,7 @@ void Draggoon::DConsoleEngine::setCharAlpha(Draggoon::Vector2D<int> t_pix, short
 			(brightChar?1:0) << 3;
 	}
 	//else
-	//	throw "Tried to draw outside of screen.";
+	//	throw std::runtime_error("Tried to draw outside of screen.");
 }
 
 void Draggoon::DConsoleEngine::drawString(Draggoon::Vector2D<int> t_pix, const wchar_t * t_str, Draggoon::Color<float> t_charColor, Draggoon::Color<float> t_backColor) {
@@ -574,7 +621,7 @@ void Draggoon::DConsoleEngine::drawString(Draggoon::Vector2D<int> t_pix, const w
 			if (m_bufferSize.contains({x,y}))
 				setChar({x, y}, t_str[i], t_charColor, t_backColor);
 			//else
-			//	throw "Drawing string outside of screen.";
+			//	throw std::runtime_error("Drawing string outside of screen.");
 			x+=1;
 		}
 		++i;
@@ -592,7 +639,7 @@ void Draggoon::DConsoleEngine::drawStringAlpha(Draggoon::Vector2D<int> t_pix, co
 			if (m_bufferSize.contains({x,y}))
 				setCharAlpha({x, y}, t_str[i], t_charColor);
 			//else
-			//	throw "Drawing string outside of screen.";
+			//	throw std::runtime_error("Drawing string outside of screen.");
 			x+=1;
 		}
 		++i;

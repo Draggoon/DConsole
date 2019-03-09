@@ -1,6 +1,10 @@
 ﻿#pragma once
 
+#ifdef WIN32
 #include <Windows.h>
+#else
+#include <curses.h>
+#endif
 
 #include <iostream>
 #include <fstream>
@@ -44,10 +48,15 @@ namespace Draggoon {
 		~DConsoleEngine();
 
 	private:
+		// Console access methods (to differ between windows and linux)
 		/// <summary>Sets the console size and cursor options.</summary>
 		void initConsole();
 		/// <summary>Changes the size of the buffer when the console is resized.</summary>
 		void resizeConsole(const Draggoon::Vector2D<int>& newSize=Draggoon::Vector2D<int>(-1,-1));
+		// <summary>Returns the console size in characters.</summary>
+		Draggoon::Vector2D<int> getConsoleSize();
+		// <summary>Refreshes the screen of the console, displaying what has been prepared by the user in onScreenUpdate.</summary>
+		Draggoon::Vector2D<int> refreshConsoleScreen();
 
 
 	protected:
@@ -67,7 +76,7 @@ namespace Draggoon {
 		/// <summary>Called periodically (depending on the framerate) to process input.</summary>
 		virtual bool onInputUpdate(const Key* keys, const size_t& keyCount, const Key* mouseBtn, const size_t& mouseBtnCount) {
 			// This is a default method that can be overloaded by the user
-			if (keys[VK_ESCAPE].isPressed()) {
+			if (keys[Draggoon::Keys::escape].isPressed()) {
 				return false;	// Stop the thread loop
 			}
 			return true;	// Continue
@@ -146,7 +155,7 @@ namespace Draggoon {
 		bool m_stretchOnResize;
 
 		bool m_enableStats;
-		wchar_t m_lastFrameStats[256];
+		wchar_t m_lastFrameStats[512];
 
 	private:
 		Draggoon::Vector2D<int> m_desiredSize;
@@ -158,10 +167,6 @@ namespace Draggoon {
 		static volatile bool m_runEngine;
 		bool m_asyncRunning;
 		bool m_windowCreated;
-		HANDLE m_originalScreenBuffer;
-		HANDLE m_screenBuffer;
-		HANDLE m_inputHandle;
-		CHAR_INFO* m_pixelsBuffer;
 		Draggoon::Vector2D<int> m_bufferSize;
 		Draggoon::Vector2D<int> m_actualSize;
 
@@ -173,10 +178,19 @@ namespace Draggoon {
 
 		static std::condition_variable m_stopCV;
 		static std::mutex m_stopMutex;
-		static BOOL consoleEventHandler(DWORD event);
+		static bool consoleEventHandler(unsigned long event);
 
 		std::ofstream m_cerrFile;
 		std::streambuf* m_origCerr;
+
+		void processInputs();
+
+#ifdef WIN32
+		HANDLE m_originalScreenBuffer;
+		HANDLE m_screenBuffer;
+		HANDLE m_inputHandle;
+		CHAR_INFO* m_pixelsBuffer;
+#endif
 
 	};
 }
