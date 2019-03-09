@@ -1,13 +1,6 @@
 ﻿#include "DConsoleEngine.h"
 
 
-short Draggoon::C_FULL_BLOCK = L'\u2588';	// █
-short Draggoon::C_DARK_SHADE = L'\u2593';	// ▓
-short Draggoon::C_MEDIUM_SHADE = L'\u2592';	// ▒
-short Draggoon::C_LIGHT_SHADE = L'\u2591';	// ░
-short Draggoon::C_SPACE = L' ';				//  
-
-
 // ##     ## ######### ##,   ,##
 // ##   ##   ##""""""   "#, ,#"
 // ## ##     ##          "#,#"
@@ -306,6 +299,7 @@ Draggoon::Vector2D<int> Draggoon::DConsoleEngine::getSize() const {
 	return m_actualSize;
 }
 
+
 #ifdef WIN32
 void Draggoon::DConsoleEngine::processInputs() {
 	if (GetForegroundWindow() == GetConsoleWindow()) {
@@ -355,6 +349,14 @@ void Draggoon::DConsoleEngine::processInputs() {
 	throw std::runtime_error("Draggoon::DConsoleEngine::processInputs: not implemented!");
 }
 #endif
+
+
+CHAR_INFO Draggoon::DConsoleEngine::getCharInfo(Vector2D<int> t_pos) {
+	if (t_pos.isContainedIn(m_bufferSize))
+		return m_pixelsBuffer[t_pos.getY()*m_bufferSize.getX() + t_pos.getX()];
+	else
+		return CHAR_INFO();
+}
 
 // ######### ##     ## #######,  #########    ###    #######,
 // """###""" ##     ## ##"""""#, ##""""""    ##"##   ##"""""#,
@@ -567,27 +569,38 @@ void Draggoon::DConsoleEngine::setChar(Draggoon::Vector2D<int> t_pix, short t_ch
 		if(!t_charColor.isTransparent())
 			m_pixelsBuffer[bufferPos].Char.UnicodeChar = t_char;
 
-		bool brightChar(false), brightBack(false);
-		brightChar = t_charColor.getR()>0.5f || t_charColor.getG()>0.5f || t_charColor.getB()>0.5f;
-		brightBack = t_backColor.getR()>0.5f || t_backColor.getG()>0.5f || t_backColor.getB()>0.5f;
+		//bool brightChar(false), brightBack(false);
+		//brightChar = t_charColor.getR()>0.5f || t_charColor.getG()>0.5f || t_charColor.getB()>0.5f;
+		//brightBack = t_backColor.getR()>0.5f || t_backColor.getG()>0.5f || t_backColor.getB()>0.5f;
 
 		if(!t_charColor.isTransparent()) {
 			m_pixelsBuffer[bufferPos].Attributes = (m_pixelsBuffer[bufferPos].Attributes & 0xFFF0) |
-				(t_charColor.getR()>0.0f?1:0) << 2 |
-				(t_charColor.getG()>0.0f?1:0) << 1 |
-				(t_charColor.getB()>0.0f?1:0) |
-				(brightChar?1:0) << 3;
+				t_charColor.getConsoleColor();
+			//m_pixelsBuffer[bufferPos].Attributes = (m_pixelsBuffer[bufferPos].Attributes & 0xFFF0) |
+			//	(t_charColor.getR()>0.0f?1:0) << 2 |
+			//	(t_charColor.getG()>0.0f?1:0) << 1 |
+			//	(t_charColor.getB()>0.0f?1:0) |
+			//	(brightChar?1:0) << 3;
 		}
 		if (!t_backColor.isTransparent()) {
 			m_pixelsBuffer[bufferPos].Attributes = (m_pixelsBuffer[bufferPos].Attributes & 0xFF0F) |
-				(t_backColor.getR()>0.0f?1:0) << 6 |
-				(t_backColor.getG()>0.0f?1:0) << 5 |
-				(t_backColor.getB()>0.0f?1:0) << 4 |
-				(brightBack?1:0) << 7;
+				t_backColor.getConsoleColor() << 4;
+			//m_pixelsBuffer[bufferPos].Attributes = (m_pixelsBuffer[bufferPos].Attributes & 0xFF0F) |
+			//	(t_backColor.getR()>0.0f?1:0) << 6 |
+			//	(t_backColor.getG()>0.0f?1:0) << 5 |
+			//	(t_backColor.getB()>0.0f?1:0) << 4 |
+			//	(brightBack?1:0) << 7;
 		}
 	}
 	//else
 	//	throw std::runtime_error("Tried to draw outside of screen.");
+}
+
+void Draggoon::DConsoleEngine::setChar(Draggoon::Vector2D<int> t_pix, const CHAR_INFO & t_char) {
+	if (t_pix.isContainedIn(m_bufferSize)) {
+		m_pixelsBuffer[t_pix.getY() * m_bufferSize.getX() + t_pix.getX()] = t_char;
+	}
+	// else throw...
 }
 
 void Draggoon::DConsoleEngine::setCharAlpha(Draggoon::Vector2D<int> t_pix, short t_char, Draggoon::Color<float> t_charColor) {
@@ -601,10 +614,11 @@ void Draggoon::DConsoleEngine::setCharAlpha(Draggoon::Vector2D<int> t_pix, short
 		brightChar = t_charColor.getR()>0.5f || t_charColor.getG()>0.5f || t_charColor.getB()>0.5f;
 
 		m_pixelsBuffer[bufferPos].Attributes = (m_pixelsBuffer[bufferPos].Attributes & 0xFFF0) |
-			(t_charColor.getR()>0.0f?1:0) << 2 |
-			(t_charColor.getG()>0.0f?1:0) << 1 |
-			(t_charColor.getB()>0.0f?1:0) |
-			(brightChar?1:0) << 3;
+			t_charColor.getConsoleColor();
+			//(t_charColor.getR()>0.0f?1:0) << 2 |
+			//(t_charColor.getG()>0.0f?1:0) << 1 |
+			//(t_charColor.getB()>0.0f?1:0) |
+			//(brightChar?1:0) << 3;
 	}
 	//else
 	//	throw std::runtime_error("Tried to draw outside of screen.");

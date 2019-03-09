@@ -33,5 +33,8 @@ protected:
 	bool m_runAutomata;
 	std::default_random_engine m_randomGenerator;
 
+	Draggoon::Color<float> m_aliveColor;
+	Draggoon::Color<float> m_deadColor;
+
 };
 
